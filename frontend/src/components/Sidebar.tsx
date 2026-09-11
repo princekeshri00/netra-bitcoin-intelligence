@@ -1,4 +1,4 @@
-import { USE_MOCK, setUseMock, onConnectionChange, getConnectionStatus, type ConnectionStatus } from '../api/client';
+import { API_BASE, USE_MOCK, setUseMock, onConnectionChange, getConnectionStatus, type ConnectionStatus } from '../api/client';
 import { useState, useEffect } from 'react';
 import { LayoutDashboard, Database, Zap, Wallet, GitBranch, ShieldAlert, Radio, Layers, Eye } from 'lucide-react';
 

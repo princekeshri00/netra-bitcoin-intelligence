@@ -289,18 +289,32 @@ export default function InvestigationPage({ alertId }: { alertId: string }) {
               </div>
 
               <div className="space-y-2">
-                {propagation.propagation_path.hops.slice(0, 4).map((h) => (
-                  <div
-                    key={h.hop}
-                    className="flex items-center gap-3 rounded-lg bg-slate-950/40 border border-slate-800/80 px-3 py-2 font-mono text-xs"
-                  >
-                    <span className="rounded bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-bold text-rose-400">
-                      HOP {h.hop}
-                    </span>
-                    <span className="truncate flex-1 text-slate-300">{h.wallet}</span>
-                    <span className="text-cyan-400 font-bold">{h.score.toFixed(1)}</span>
-                  </div>
-                ))}
+                {propagation.propagation_path.hops.slice(0, 4).map((h, idx) => {
+                  const hopNum = h.hop ?? (h as any).hop_distance ?? (idx + 1);
+                  const walletAddr = h.wallet ?? (h as any).target_wallet ?? 'Unknown Wallet';
+                  const scoreVal = typeof h.score === 'number'
+                    ? h.score
+                    : typeof (h as any).propagated_score === 'number'
+                    ? ((h as any).propagated_score * 100)
+                    : 0;
+
+                  return (
+                    <div
+                      key={`${hopNum}-${walletAddr}-${idx}`}
+                      className="flex items-center gap-3 rounded-lg bg-slate-950/40 border border-slate-800/80 px-3 py-2 font-mono text-xs"
+                    >
+                      <span className="rounded bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-bold text-rose-400">
+                        HOP {hopNum}
+                      </span>
+                      <span className="truncate flex-1 text-slate-300" title={walletAddr}>
+                        {walletAddr}
+                      </span>
+                      <span className="text-cyan-400 font-bold">
+                        {scoreVal.toFixed(1)}%
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

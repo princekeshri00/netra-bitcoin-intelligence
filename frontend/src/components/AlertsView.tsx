@@ -163,20 +163,31 @@ export default function AlertsView({
               </div>
 
               <div className="space-y-2 pt-2">
-                {propagationRes.propagation_path.hops.map((h) => (
-                  <div key={h.hop} className="flex items-center gap-3 bg-slate-900 p-3 rounded-lg border border-slate-800">
-                    <span className="h-6 w-6 rounded-full bg-cyan-950 border border-cyan-800 text-cyan-300 font-bold flex items-center justify-center text-[10px]">
-                      H{h.hop}
-                    </span>
-                    <div className="flex-1 truncate">
-                      <div className="text-white font-bold truncate">{h.wallet}</div>
-                      <div className="text-[10px] text-slate-500">via tx: {h.txid}</div>
+                {propagationRes.propagation_path.hops.map((h, idx) => {
+                  const hopNum = h.hop ?? (h as any).hop_distance ?? (idx + 1);
+                  const walletAddr = h.wallet ?? (h as any).target_wallet ?? 'Unknown';
+                  const scoreVal = typeof h.score === 'number'
+                    ? (h.score > 1.0 ? h.score : h.score * 100)
+                    : typeof (h as any).propagated_score === 'number'
+                    ? ((h as any).propagated_score * 100)
+                    : 0;
+                  const txId = h.txid || (h as any).path_txids_json || 'N/A';
+
+                  return (
+                    <div key={`${hopNum}-${walletAddr}-${idx}`} className="flex items-center gap-3 bg-slate-900 p-3 rounded-lg border border-slate-800">
+                      <span className="h-6 w-6 rounded-full bg-cyan-950 border border-cyan-800 text-cyan-300 font-bold flex items-center justify-center text-[10px]">
+                        H{hopNum}
+                      </span>
+                      <div className="flex-1 truncate">
+                        <div className="text-white font-bold truncate">{walletAddr}</div>
+                        <div className="text-[10px] text-slate-500">via tx: {txId}</div>
+                      </div>
+                      <div className="font-bold text-rose-400 font-mono">
+                        {scoreVal.toFixed(0)}% Score
+                      </div>
                     </div>
-                    <div className="font-bold text-rose-400 font-mono">
-                      {(h.score * 100).toFixed(0)}% Score
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

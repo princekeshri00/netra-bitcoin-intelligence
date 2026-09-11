@@ -1,53 +1,46 @@
-// Bitcoin Transaction Intelligence Platform — API v1.0.0 Contract Types
-
-export type RiskLevel = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type PatternType = 'peeling_chain' | 'coinjoin' | 'anomaly' | 'fan_out' | 'fan_in';
-export type EntityType = 'wallet' | 'transaction' | 'ip' | 'cluster';
+export type EntityType = 'wallet' | 'transaction';
 
-// Paginated envelope
-export interface PaginatedResponse<T> {
+export interface Paginated<T> {
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
 }
 
-// Error envelope
+export type PaginatedResponse<T> = Paginated<T>;
+
 export interface ApiError {
   error: string;
   message: string;
   status: number;
 }
 
-// 1. Datasets
-export interface DatasetImportResponse {
-  dataset_id: string;
-  job_id: string;
-  status: 'ingesting' | 'queued' | 'done' | 'failed';
-  message: string;
-}
+// ---- Datasets ----
 
-export interface DatasetStats {
-  transactions: number;
-  wallets: number;
-  unique_ips: number;
-  unique_asns: number;
-  unique_countries: number;
-  records_valid: number;
-  records_errored: number;
-}
-
-export interface DatasetDetail {
+export interface Dataset {
   dataset_id: string;
   source_format: string;
-  status: 'ingesting' | 'done' | 'failed';
+  status: string;
   created_at: string;
   completed_at: string | null;
-  stats: DatasetStats;
+  stats: {
+    transactions: number;
+    wallets: number;
+    unique_ips: number;
+    unique_asns: number;
+    unique_countries: number;
+    records_valid: number;
+    records_errored: number;
+  };
 }
 
-// 2. Transactions
-export interface TransactionListItem {
+export type DatasetDetail = Dataset;
+
+// ---- Transactions ----
+
+export interface TransactionSummary {
   txid: string;
   timestamp: string;
   block_height: number;
@@ -61,20 +54,23 @@ export interface TransactionListItem {
   src_ip: string;
 }
 
-export interface TransactionDetail extends TransactionListItem {
+export type TransactionListItem = TransactionSummary;
+
+export interface TransactionDetail extends TransactionSummary {
   block_hash: string;
   transaction_index: number;
   version: number;
   locktime: number;
   transaction_size: number;
   transaction_weight: number;
-  src_port?: number;
-  dst_ip?: string;
-  dst_port?: number;
+  src_port: number;
+  dst_ip: string;
+  dst_port: number;
 }
 
-// 3. Wallets
-export interface WalletListItem {
+// ---- Wallets ----
+
+export interface WalletSummary {
   address: string;
   first_seen: string;
   last_seen: string;
@@ -85,72 +81,84 @@ export interface WalletListItem {
   risk_level: RiskLevel;
 }
 
-export interface WalletRiskBreakdown {
+export type WalletListItem = WalletSummary;
+
+export interface WalletProfile extends WalletSummary {
+  cluster_id?: string;
+}
+
+export interface WalletRisk {
   address: string;
   risk_score: number;
   risk_level: RiskLevel;
   confidence: number;
-  components: {
-    anomaly: number;
-    peeling: number;
-    coinjoin: number;
-    cluster: number;
-    network: number;
-    propagated: number;
-  };
-  weights: {
-    anomaly: number;
-    peeling: number;
-    coinjoin: number;
-    cluster: number;
-    network: number;
-    propagated: number;
-  };
+  components: Record<string, number>;
+  weights: Record<string, number>;
 }
 
-// 4. Graph
-export interface GraphNodeData {
-  risk_score?: number;
-  risk_level?: RiskLevel;
-  tx_count?: number;
-  timestamp?: string;
-  amount?: number;
-  fee?: number;
+export type WalletRiskBreakdown = WalletRisk;
+
+export interface Counterparty {
+  address: string;
+  tx_count: number;
+  total_volume: number;
 }
+
+// ---- Graph ----
 
 export interface GraphNode {
   id: string;
   type: EntityType;
   label: string;
-  data?: GraphNodeData;
-}
-
-export interface GraphEdgeData {
-  amount?: number;
-  timestamp?: string;
+  data: Record<string, unknown>;
 }
 
 export interface GraphEdge {
-  id?: string;
+  id: string;
   source: string;
   target: string;
-  type: string; // e.g. "INPUT_TO", "OUTPUT_TO"
-  data?: GraphEdgeData;
+  type: string;
+  data: {
+    amount?: number;
+    timestamp?: string;
+    [key: string]: unknown;
+  };
 }
 
-export interface GraphResponse {
+export interface GraphData {
   nodes: GraphNode[];
   edges: GraphEdge[];
 }
 
-export interface ShortestPathResponse {
+export type GraphResponse = GraphData;
+
+export interface ShortestPathResult {
   path: string[];
   length: number;
-  graph: GraphResponse;
+  graph: GraphData;
 }
 
-// 5. Alerts & Evidence
-export interface AlertItem {
+// ---- Alerts ----
+
+export interface TopFeature {
+  feature: string;
+  z_score: number;
+}
+
+export interface EvidenceData {
+  score?: number;
+  top_features?: TopFeature[];
+  chain_count?: number;
+  avg_chain_length?: number;
+  avg_peel_fraction?: number;
+  txids?: string[];
+  seed_wallet?: string;
+  hop_distance?: number;
+  propagated_score?: number;
+  path?: string[];
+}
+
+export interface AlertSummary {
   alert_id: string;
   entity_type: EntityType;
   entity_id: string;
@@ -161,33 +169,21 @@ export interface AlertItem {
   created_at: string;
 }
 
-export interface EvidenceFeature {
-  feature: string;
-  z_score: number;
-}
+export type AlertItem = AlertSummary;
 
 export interface EvidenceItem {
   evidence_type: string;
   description: string;
   weight: number;
-  data: {
-    score?: number;
-    top_features?: EvidenceFeature[];
-    chain_count?: number;
-    avg_chain_length?: number;
-    avg_peel_fraction?: number;
-    txids?: string[];
-    seed_wallet?: string;
-    hop_distance?: number;
-    propagated_score?: number;
-    path?: string[];
-  };
+  data: EvidenceData;
 }
 
-export interface AlertEvidenceResponse {
+export interface AlertEvidence {
   alert_id: string;
   evidence: EvidenceItem[];
 }
+
+export type AlertEvidenceResponse = AlertEvidence;
 
 export interface PropagationHop {
   hop: number;
@@ -196,7 +192,7 @@ export interface PropagationHop {
   score: number;
 }
 
-export interface AlertPropagationResponse {
+export interface AlertPropagation {
   alert_id: string;
   target_wallet: string;
   propagation_path: {
@@ -206,16 +202,46 @@ export interface AlertPropagationResponse {
   };
 }
 
-// 6. Analysis Pipeline
+export type AlertPropagationResponse = AlertPropagation;
+
+// ---- Clusters ----
+
+export interface ClusterInfo {
+  clusterId: string;
+  name: string;
+  primaryRiskType: string;
+  walletCount: number;
+  riskScore: number;
+  totalVolumeBtc: number;
+  associatedIps: string[];
+  topAddresses: string[];
+}
+
+// ---- Stream ----
+
+export interface StreamTransaction {
+  txid: string;
+  sender: string;
+  receiver: string;
+  amount: number;
+  timestamp: string;
+  ip: string;
+  country: string;
+  isAnomalous: boolean;
+  anomalyScore: number;
+}
+
+// ---- Analysis pipeline ----
+
 export interface AnalysisJob {
   job_id: string;
   dataset_id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: 'pending' | 'running' | 'done' | 'failed' | string;
   current_stage?: string;
   stages_completed?: string[];
   stages_remaining?: string[];
   started_at: string;
-  completed_at?: string | null;
+  completed_at: string | null;
 }
 
 export interface AnalysisStats {
@@ -233,28 +259,4 @@ export interface AnalysisStats {
     high_alerts: number;
     medium_alerts: number;
   };
-}
-
-// Extensions for Cluster & Stream Visualizers
-export interface ClusterInfo {
-  clusterId: string;
-  name: string;
-  walletCount: number;
-  totalVolumeBtc: number;
-  riskScore: number;
-  primaryRiskType: string;
-  associatedIps: string[];
-  topAddresses: string[];
-}
-
-export interface StreamTransaction {
-  txid: string;
-  sender: string;
-  receiver: string;
-  amount: number;
-  timestamp: string;
-  ip: string;
-  country: string;
-  isAnomalous: boolean;
-  anomalyScore: number;
 }

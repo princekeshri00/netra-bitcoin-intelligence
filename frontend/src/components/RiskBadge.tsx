@@ -1,16 +1,27 @@
 import type { RiskLevel } from '../types';
 
-const styles: Record<RiskLevel, string> = {
-  CRITICAL: 'bg-red-500/15 text-red-400 border border-red-500/25',
-  HIGH: 'bg-orange-500/15 text-orange-400 border border-orange-500/25',
-  MEDIUM: 'bg-amber-500/15 text-amber-400 border border-amber-500/25',
-  LOW: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25',
+const ring: Record<RiskLevel, string> = {
+  CRITICAL: 'border-risk-critical text-risk-critical',
+  HIGH: 'border-risk-high text-risk-high',
+  MEDIUM: 'border-risk-medium text-risk-medium',
+  LOW: 'border-risk-low text-risk-low',
 };
 
-export default function RiskBadge({ level }: { level: RiskLevel }) {
+// A stamped ring, not a filled pill — reads as "case marking" rather than a
+// generic status chip. CRITICAL gets a double ring so it's unmistakable at
+// a glance even before the label registers.
+export default function RiskBadge({ level, score }: { level: RiskLevel; score?: number }) {
+  const isCritical = level === 'CRITICAL';
   return (
-    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-mono font-bold tracking-wide uppercase ${styles[level] || styles.LOW}`}>
-      {level}
+    <span className="inline-flex items-center gap-2">
+      <span
+        className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-semibold ${
+          isCritical ? `border-2 border-double ${ring[level]}` : `border-2 ${ring[level]}`
+        }`}
+      >
+        {score !== undefined ? Math.round(score) : '—'}
+      </span>
+      <span className={`text-xs font-medium tracking-wide ${ring[level].split(' ')[1]}`}>{level}</span>
     </span>
   );
 }

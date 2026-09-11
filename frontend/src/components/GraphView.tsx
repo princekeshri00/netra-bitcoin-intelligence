@@ -1,15 +1,19 @@
 import { useEffect, useRef } from 'react';
 import cytoscape from 'cytoscape';
-import type { GraphResponse } from '../types';
+import type { GraphData } from '../types';
 
-const nodeColor: Record<string, string> = {
-  wallet: '#0E7490',
-  transaction: '#1C2C47',
-  ip: '#B4390A',
-  cluster: '#B7791F',
+const riskColor: Record<string, string> = {
+  CRITICAL: '#7A1611',
+  HIGH: '#A3311A',
+  MEDIUM: '#8A6A17',
+  LOW: '#2E6B47',
+};
+const typeColor: Record<string, string> = {
+  wallet: '#1B2A45',
+  transaction: '#B5651D',
 };
 
-export default function GraphView({ data, focusId }: { data: GraphResponse; focusId?: string }) {
+export default function GraphView({ data, focusId }: { data: GraphData; focusId?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -19,37 +23,44 @@ export default function GraphView({ data, focusId }: { data: GraphResponse; focu
       container: containerRef.current,
       elements: [
         ...data.nodes.map((n) => ({
-          data: { id: n.id, label: n.label, type: n.type },
+          data: {
+            id: n.id,
+            label: n.label,
+            type: n.type,
+            risk_level: n.data?.risk_level,
+          },
         })),
-        ...data.edges.map((e, i) => ({
-          data: { id: e.id || `e${i}`, source: e.source, target: e.target, relation: e.type },
+        ...data.edges.map((e) => ({
+          data: { id: e.id, source: e.source, target: e.target, type: e.type },
         })),
       ],
       style: [
         {
           selector: 'node',
           style: {
-            'background-color': (ele: any) => nodeColor[ele.data('type')] ?? '#64748B',
+            // risk color takes priority over entity-type color when present
+            'background-color': (ele: any) =>
+              riskColor[ele.data('risk_level')] ?? typeColor[ele.data('type')] ?? '#94A3B8',
             label: 'data(label)',
-            color: '#E2E8F0',
+            color: '#1E2430',
             'font-size': '10px',
             'text-valign': 'bottom',
             'text-margin-y': 6,
             width: 34,
             height: 34,
             'border-width': (ele: any) => (ele.data('id') === focusId ? 3 : 0),
-            'border-color': '#EF4444',
+            'border-color': '#7A1611',
           },
         },
         {
           selector: 'edge',
           style: {
             width: 1.5,
-            'line-color': '#475569',
-            'target-arrow-color': '#475569',
+            'line-color': '#CBD5E1',
+            'target-arrow-color': '#CBD5E1',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
-            label: 'data(relation)',
+            label: 'data(type)',
             'font-size': '8px',
             color: '#94A3B8',
           },

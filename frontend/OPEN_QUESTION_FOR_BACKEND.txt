@@ -1,0 +1,18 @@
+Open question for Prince (backend) before this is fully load-bearing:
+
+The API has no "get the current/latest job_id for a dataset" endpoint. To poll
+/analysis/{job_id}/stats/ on Dashboard load, the frontend needs a job_id from
+somewhere. I've built the Dashboard to:
+  1. Assume a known DATASET_ID (env var, defaults to "demo_01")
+  2. On load, fetch /datasets/{dataset_id}/ (always available, no job_id needed)
+  3. Offer a "Run Analysis" button that POSTs /analysis/ and gets a job_id back
+  4. Poll that job_id until done, then fetch its /stats/
+
+This works standalone, but on page refresh the job_id is lost (not persisted
+anywhere). Two real fixes, your call:
+  (a) add GET /api/v1/datasets/{dataset_id}/latest-job/ , or
+  (b) frontend persists job_id in localStorage after triggering (fine for a
+      hackathon demo, not real UX)
+
+Going with (b) for now unless you add (a) — flagging so it's a known gap, not
+a silent assumption.

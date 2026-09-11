@@ -1,44 +1,49 @@
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+interface StatCardProps {
+  label: string;
+  value: number | string;
+  flagged?: boolean;
+  trend?: 'up' | 'down';
+  tone?: 'warning' | 'success' | 'danger';
+}
 
 export default function StatCard({
   label,
   value,
-  tone = 'default',
+  flagged = false,
   trend,
-}: {
-  label: string;
-  value: number | string;
-  tone?: 'default' | 'warning' | 'danger' | 'success';
-  trend?: 'up' | 'down' | 'neutral';
-}) {
-  const valueColor =
-    tone === 'danger'
-      ? 'text-red-400'
-      : tone === 'warning'
-      ? 'text-amber-400'
-      : tone === 'success'
-      ? 'text-emerald-400'
-      : 'text-[var(--netra-accent)]';
+  tone,
+}: StatCardProps) {
+  let valueClass = 'text-ink';
 
-  const glowClass =
-    tone === 'danger'
-      ? 'hover:netra-glow-danger'
-      : 'hover:netra-glow-cyan';
+  if (flagged || tone === 'danger') {
+    valueClass = 'text-stamp';
+  } else if (tone === 'warning') {
+    valueClass = 'text-amber-600';
+  } else if (tone === 'success') {
+    valueClass = 'text-emerald-600';
+  }
 
   return (
-    <div className={`netra-card p-4 transition-all duration-200 hover:-translate-y-0.5 ${glowClass} group`}>
-      <div className="flex items-center justify-between">
-        <div className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[var(--netra-text-muted)]">
-          {label}
-        </div>
+    <div className="border-l-2 border-paper-line pl-4 py-1">
+      <div className="text-[12.5px] text-slate-500">
+        {label}
+      </div>
+
+      <div className={`mt-1 flex items-center gap-2 font-mono text-[26px] font-semibold ${valueClass}`}>
+        {value}
+
         {trend && (
-          <span className={`${trend === 'up' ? 'text-emerald-400' : trend === 'down' ? 'text-red-400' : 'text-[var(--netra-text-muted)]'}`}>
-            {trend === 'up' ? <TrendingUp className="h-3 w-3" /> : trend === 'down' ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
+          <span
+            className={`text-sm ${
+              trend === 'up'
+                ? 'text-emerald-600'
+                : 'text-rose-600'
+            }`}
+            aria-label={trend === 'up' ? 'Increasing' : 'Decreasing'}
+          >
+            {trend === 'up' ? '↑' : '↓'}
           </span>
         )}
-      </div>
-      <div className={`mt-2 font-mono text-2xl font-extrabold ${valueColor} transition-colors`}>
-        {value}
       </div>
     </div>
   );

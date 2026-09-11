@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import cytoscape from 'cytoscape';
-import type { GraphNode, GraphResponse } from '../types';
+import type { GraphNode, GraphResponse, RiskLevel } from '../types';
 import { fetchGraphNeighborhood } from '../api/client';
 import RiskBadge from './RiskBadge';
 import { Search, RefreshCw, ZoomIn, ZoomOut, Cpu, Download, GitBranch } from 'lucide-react';
@@ -222,7 +222,10 @@ export default function GraphExplorerView({
           <div>
             <h3 className="font-serif text-sm font-semibold text-white border-b border-slate-800 pb-3 flex items-center justify-between">
               <span>Entity Node Inspector</span>
-              {selectedNode?.data?.risk_level && <RiskBadge level={selectedNode.data.risk_level} />}
+              {typeof selectedNode?.data?.risk_level === 'string' &&
+                ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(selectedNode.data.risk_level) && (
+                  <RiskBadge level={selectedNode.data.risk_level as RiskLevel} />
+                )}
             </h3>
 
             {selectedNode ? (
@@ -239,7 +242,12 @@ export default function GraphExplorerView({
                   </div>
                   <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
                     <span className="text-slate-500 block text-[10px]">Risk Score</span>
-                    <span className="font-bold text-rose-400">{selectedNode.data?.risk_score ?? 'N/A'}/100</span>
+                    <span className="font-bold text-rose-400">
+                      {typeof selectedNode.data?.risk_score === 'number'
+                        ? selectedNode.data.risk_score
+                        : 'N/A'}
+                      /100
+                    </span>
                   </div>
                 </div>
               </div>

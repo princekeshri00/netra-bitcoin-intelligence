@@ -6,10 +6,10 @@ import RiskBadge from './RiskBadge';
 import { Search, RefreshCw, ZoomIn, ZoomOut, Cpu, Download, GitBranch } from 'lucide-react';
 
 const nodeColor: Record<string, string> = {
-  wallet: '#0E7490',
-  transaction: '#1C2C47',
-  ip: '#B4390A',
-  cluster: '#B7791F',
+  wallet: '#06B6D4',
+  transaction: '#8B5CF6',
+  ip: '#F59E0B',
+  cluster: '#3B82F6',
 };
 
 export default function GraphExplorerView({

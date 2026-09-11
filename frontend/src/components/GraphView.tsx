@@ -3,14 +3,17 @@ import cytoscape from 'cytoscape';
 import type { GraphData } from '../types';
 
 const riskColor: Record<string, string> = {
-  CRITICAL: '#7A1611',
-  HIGH: '#A3311A',
-  MEDIUM: '#8A6A17',
-  LOW: '#2E6B47',
+  CRITICAL: '#F43F5E',
+  HIGH: '#F97316',
+  MEDIUM: '#F59E0B',
+  LOW: '#10B981',
 };
+
 const typeColor: Record<string, string> = {
-  wallet: '#1B2A45',
-  transaction: '#B5651D',
+  wallet: '#06B6D4',
+  transaction: '#8B5CF6',
+  ip: '#F59E0B',
+  cluster: '#3B82F6',
 };
 
 export default function GraphView({ data, focusId }: { data: GraphData; focusId?: string }) {
@@ -27,7 +30,7 @@ export default function GraphView({ data, focusId }: { data: GraphData; focusId?
             id: n.id,
             label: n.label,
             type: n.type,
-            risk_level: n.data?.risk_level,
+            risk_level: (n.data as any)?.risk_level,
           },
         })),
         ...data.edges.map((e) => ({
@@ -38,39 +41,59 @@ export default function GraphView({ data, focusId }: { data: GraphData; focusId?
         {
           selector: 'node',
           style: {
-            // risk color takes priority over entity-type color when present
             'background-color': (ele: any) =>
-              riskColor[ele.data('risk_level')] ?? typeColor[ele.data('type')] ?? '#94A3B8',
+              riskColor[ele.data('risk_level')] ?? typeColor[ele.data('type')] ?? '#06B6D4',
             label: 'data(label)',
-            color: '#1E2430',
+            color: '#F8FAFC',
             'font-size': '10px',
+            'font-family': 'ui-monospace, monospace',
+            'font-weight': 'bold',
             'text-valign': 'bottom',
             'text-margin-y': 6,
-            width: 34,
-            height: 34,
-            'border-width': (ele: any) => (ele.data('id') === focusId ? 3 : 0),
-            'border-color': '#7A1611',
+            width: 36,
+            height: 36,
+            'border-width': (ele: any) => (ele.data('id') === focusId ? 4 : 2),
+            'border-color': (ele: any) => (ele.data('id') === focusId ? '#22D3EE' : 'rgba(255, 255, 255, 0.2)'),
+            'overlay-opacity': 0,
           },
         },
         {
           selector: 'edge',
           style: {
             width: 1.5,
-            'line-color': '#CBD5E1',
-            'target-arrow-color': '#CBD5E1',
+            'line-color': '#334155',
+            'target-arrow-color': '#64748B',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
             label: 'data(type)',
             'font-size': '8px',
-            color: '#94A3B8',
+            'font-family': 'ui-monospace, monospace',
+            color: '#64748B',
+            'text-rotation': 'autorotate',
+            'text-background-color': '#0B0F19',
+            'text-background-opacity': 0.8,
+            'text-background-padding': '2px',
+          },
+        },
+        {
+          selector: 'node:selected',
+          style: {
+            'border-color': '#38BDF8',
+            'border-width': 4,
           },
         },
       ],
-      layout: { name: 'cose', animate: false, padding: 40 },
+      layout: {
+        name: 'cose',
+        animate: true,
+        animationDuration: 400,
+        padding: 40,
+        componentSpacing: 60,
+      },
     });
 
     return () => cy.destroy();
   }, [data, focusId]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return <div ref={containerRef} className="h-full w-full bg-[#05080F]" />;
 }
